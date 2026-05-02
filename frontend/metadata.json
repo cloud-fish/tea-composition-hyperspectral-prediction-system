@@ -1,0 +1,6 @@
+{
+  "name": "Tea Composition Hyperspectral Prediction System",
+  "description": "An intelligent system for predicting tea components (catechin, caffeine, theophylline, theanine) using hyperspectral images.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
