@@ -2,6 +2,7 @@
 import { ref, reactive } from 'vue';
 import { Leaf, Upload, Play, CheckCircle, AlertCircle, Loader2, BarChart3, Zap, FlaskConical, Sparkles } from 'lucide-vue-next';
 import { ElMessage } from 'element-plus';
+import axios from 'axios';
 
 interface PredictionResults {
   catechin: number;
@@ -11,6 +12,7 @@ interface PredictionResults {
 }
 
 const isPredicting = ref(false);
+const uploadProgress = ref(0);
 const hasResults = ref(false);
 const uploadedFile = ref<any>(null);
 
@@ -45,22 +47,21 @@ const startPrediction = async () => {
 
   isPredicting.value = true;
   hasResults.value = false;
+  uploadProgress.value = 0;
   
   try {
     const formData = new FormData();
     formData.append('file', uploadedFile.value);
 
-    const response = await fetch('http://127.0.0.1:8000/api/predict', {
-      method: 'POST',
-      body: formData,
+    const response = await axios.post('/api/predict', formData, {
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        }
+      }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || '请求失败');
-    }
-
-    const result = await response.json();
+    const result = response.data;
     
     // 从 API 返回结果中提取数据并更新到界面
     results.catechin = parseFloat(result.data.catechins.value.toFixed(4));
@@ -196,6 +197,24 @@ const getProgress = (key: string, value: number) => {
               <span>开始智能预测</span>
             </template>
           </button>
+
+          <!-- 进度条显示 -->
+          <div v-if="isPredicting" class="mt-4">
+            <div class="flex justify-between text-xs text-slate-500 mb-1 font-medium">
+              <span>{{ uploadProgress < 100 ? '数据上传中...' : '服务器分析中...' }}</span>
+              <span>{{ uploadProgress }}%</span>
+            </div>
+            <el-progress 
+              :percentage="uploadProgress" 
+              :status="uploadProgress === 100 ? 'success' : ''"
+              :stroke-width="8"
+              :show-text="false"
+              color="#059669"
+            />
+            <p v-if="uploadProgress === 100" class="text-[10px] text-slate-400 mt-2 text-center animate-pulse">
+              大数据量处理中，请稍后...
+            </p>
+          </div>
         </div>
 
         <!-- Info Card - Visible on all but more integrated on desktop -->
