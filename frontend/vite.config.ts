@@ -45,6 +45,7 @@ export default defineConfig(({mode}) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        'vue': path.resolve(__dirname, 'node_modules/vue')
       },
     },
     server: {

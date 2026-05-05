@@ -10,36 +10,48 @@
   - **咖啡因 (Caffeine)**：茶叶提神效果的主要来源。
   - **茶氨酸 (Theanine)**：赋予茶叶鲜爽味及放松功效。
   - **茶碱 (Theophylline)**：重要的生物碱成分。
-- **现代化交互界面**：基于 Vue 3 和 Element Plus 构建的响应式 Web 界面，支持文件拖拽上传和结果可视化。
+- **现代化交互界面**：基于 Vue 3 和 Element Plus 构建的响应式 Web 界面，采用组件化设计，支持文件拖拽上传和结果可视化。
 - **智能语义评价**：根据预测数值自动给出“高/中/低”的语义化等级评价。
+- **模块化架构**：系统后端采用分层架构（路由、服务、核心、模式），前端采用组合式 API (Composables) 和视图-组件分离的模式，具有极高的可维护性和扩展性。
 
 ## 🛠️ 技术栈
 
 ### 后端 (Backend)
 - **框架**: [FastAPI](https://fastapi.tiangolo.com/) - 高性能的 Python Web API 框架。
+- **架构**: 模块化分层架构 (Routers, Services, Schemas, Core)。
 - **深度学习**: [PyTorch](https://pytorch.org/) - 用于构建和运行 Transformer 预测模型。
 - **数据处理**: Scikit-learn (数据标准化), Joblib (模型序列化), NumPy, Pandas。
-- **模型架构**: 自定义 Transformer Encoder 结构，专为一维光谱序列优化。
 
 ### 前端 (Frontend)
 - **框架**: [Vue 3](https://vuejs.org/) (Composition API)
 - **构建工具**: [Vite](https://vitejs.dev/)
+- **路由**: [Vue Router](https://router.vuejs.org/)
 - **UI 组件库**: [Element Plus](https://element-plus.org/)
 - **样式**: [Tailwind CSS](https://tailwindcss.com/)
 - **图标**: [Lucide Vue Next](https://lucide.dev/)
-- **动画**: [Motion for Vue](https://motion.dev/)
+- **PWA**: [Vite PWA](https://vite-pwa-org.netlify.app/)
 
 ## 📂 项目结构
 
 ```text
 tea-composition-hyperspectral-prediction-system/
 ├── backend/                # 后端代码
+│   ├── app/                # 主应用目录
+│   │   ├── core/           # 核心配置和生命周期管理
+│   │   ├── routers/        # API 路由
+│   │   ├── schemas/        # Pydantic 数据模型
+│   │   ├── services/       # 业务逻辑服务层
+│   │   └── main.py         # FastAPI 应用实例
 │   ├── models/             # 预训练模型权重 (.pth) 及标准化器 (.pkl)
-│   ├── utils/              # 光谱读取、模型定义及预测逻辑
-│   ├── api.py              # FastAPI 主入口
+│   ├── utils/              # 光谱读取、模型定义等工具类
+│   ├── api.py              # uvicorn 启动入口
 │   └── requirements.txt    # 后端依赖
 ├── frontend/               # 前端代码
 │   ├── src/                # Vue 源代码
+│   │   ├── components/     # 可复用组件 (如 StatusBar, ResultCard)
+│   │   ├── composables/    # 组合式函数 (如 usePrediction)
+│   │   ├── router/         # 前端路由配置
+│   │   └── views/          # 页面级视图 (如 Home)
 │   ├── package.json        # 前端依赖及脚本
 │   └── vite.config.ts      # Vite 配置
 └── README.md               # 项目说明文档

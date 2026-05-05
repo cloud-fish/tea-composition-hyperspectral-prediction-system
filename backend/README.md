@@ -1,6 +1,6 @@
 # 茶叶成分高光谱预测系统 - 后端 (Backend)
 
-这是茶叶成分高光谱预测系统的后端部分，负责处理高光谱图像数据并使用预训练的深度学习模型（SpecTeaFormer）进行成分预测。
+这是茶叶成分高光谱预测系统的后端部分，采用模块化的分层架构，负责处理高光谱图像数据并使用预训练的深度学习模型（SpecTeaFormer）进行成分预测。
 
 ## 🚀 功能特性
 
@@ -11,20 +11,28 @@
   - 转换为吸光度并计算一阶导数以增强特征。
 - **深度学习推理**：集成基于 Transformer 的回归模型，同步预测儿茶素、咖啡因、茶碱和茶氨酸。
 - **RESTful API**：基于 FastAPI 提供高性能的预测接口。
+- **高可维护性架构**：将路由、业务逻辑、数据模式和核心配置分离，便于功能的扩展与测试。
 
 ## 📁 目录结构
 
 ```text
 backend/
+├── app/
+│   ├── core/               # 核心模块（如配置管理 config.py, 生命周期 main.py 包含的逻辑）
+│   ├── routers/            # API 路由定义 (例如 prediction.py)
+│   ├── schemas/            # Pydantic 数据验证模型 (请求和响应格式)
+│   ├── services/           # 核心业务逻辑 (如 prediction_service.py)
+│   ├── __init__.py
+│   └── main.py             # FastAPI 实例创建和中间件配置
 ├── models/                 # 预训练权重与标准化文件
 │   ├── transformer_4components.pth  # Transformer 模型权重
 │   ├── scaler_x.pkl                 # 输入特征标准化器
 │   └── scaler_y.pkl                 # 输出目标标准化器
 ├── utils/                  # 工具模块
 │   ├── ReadHyperspectrum.py # 高光谱文件读取与图像处理逻辑
-│   ├── SpecTeaFormer.py     # Transformer 模型架构定义
-│   └── predict_components.py # 封装的预测流程逻辑
-├── api.py                  # FastAPI 主入口及路由定义
+│   └── SpecTeaFormer.py     # Transformer 模型架构定义
+├── tests/                  # 单元测试与集成测试
+├── api.py                  # Uvicorn 启动包装器
 └── requirements.txt        # Python 依赖包列表
 ```
 
@@ -64,7 +72,7 @@ backend/
 - **Content-Type**: `multipart/form-data`
 - **Parameters**: 
   - `file`: `.dat` 格式的高光谱图像文件。
-- **Success Response**: 返回包含四种成分预测值及其语义评价的 JSON 数据。
+- **Success Response**: 返回包含四种成分预测值及其语义评价的 JSON 数据，符合 `schemas` 中定义的数据结构。
 
 ## 🧠 模型细节 (SpecTeaFormer)
 
