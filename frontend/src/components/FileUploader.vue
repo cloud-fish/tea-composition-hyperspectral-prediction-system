@@ -25,7 +25,7 @@ defineEmits<{
       </div>
 
       <!-- Drag & Drop Zone -->
-      <div class="flex flex-col upload-container min-h-[52px]">
+      <div class="flex flex-col upload-container min-h-[32px]">
         <el-upload
           drag
           action="#"
@@ -34,13 +34,15 @@ defineEmits<{
           accept=".dat"
           class="professional-upload"
         >
-          <div class="flex flex-col items-center justify-center p-2.5 md:p-3 text-center">
-            <div class="w-9 h-9 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center shadow-md mb-2.5 border border-emerald-50 group-hover:scale-105 transition-transform">
-              <Upload class="w-4.5 h-4.5 md:w-7 md:h-7 text-emerald-500" />
+          <div class="flex flex-wrap items-center justify-center gap-2.5 px-2 py-1 text-center sm:justify-start sm:text-left">
+            <div class="w-8 h-8 md:w-9 md:h-9 bg-white rounded-full flex items-center justify-center shadow-md border border-emerald-50 group-hover:scale-105 transition-transform">
+              <Upload class="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />
             </div>
-            <p class="text-emerald-700 font-bold mb-1 text-sm">点击或拖拽上传</p>
-            <p class="text-slate-400 text-[11px] font-medium">支持格式：.dat 高光谱影像数据</p>
-            <div v-if="uploadedFile" class="mt-2.5 flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-xl text-[10px] text-emerald-600 font-bold uppercase overflow-hidden max-w-[190px]">
+            <div class="min-w-0">
+              <p class="text-emerald-700 font-bold text-sm leading-none">点击或拖拽上传</p>
+              <p class="mt-1 text-slate-400 text-[10px] font-medium leading-none">支持 `.dat` 高光谱影像数据</p>
+            </div>
+            <div v-if="uploadedFile" class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-xl text-[10px] text-emerald-600 font-bold uppercase overflow-hidden max-w-[180px]">
               <CheckCircle class="w-3 h-3 flex-shrink-0" />
               <span class="truncate">{{ uploadedFile.name }}</span>
             </div>
@@ -92,7 +94,7 @@ defineEmits<{
             <div class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
               <Zap class="w-3.5 h-3.5 text-emerald-400" />
             </div>
-            <p class="text-[10px] text-slate-400 leading-tight">采用 TensorRT 加速引擎，典型推理延迟 &lt; 300ms</p>
+            <p class="text-[10px] text-slate-400 leading-tight">采用TensorRT加速引擎，典型推理延迟 &lt; 300ms</p>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">

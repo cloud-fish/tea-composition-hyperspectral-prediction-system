@@ -19,12 +19,14 @@ import { RouterView } from 'vue-router'
 
 .professional-upload .el-upload {
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
 }
 
 .professional-upload .el-upload-dragger {
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
   border-radius: 1rem !important;
   border: 2px dashed #d1fae5 !important;
   background-color: rgba(236, 253, 245, 0.2) !important;
@@ -40,7 +42,7 @@ import { RouterView } from 'vue-router'
 }
 
 .professional-upload .el-upload--text {
-  height: 100% !important;
+  height: auto !important;
 }
 
 /* Scrollbar styling */
@@ -75,6 +77,5 @@ import { RouterView } from 'vue-router'
   letter-spacing: -0.025em !important;
 }
 </style>
-
 
 

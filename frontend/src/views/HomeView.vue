@@ -31,21 +31,21 @@ const selectedDeviceId = ref<string | null>(mockDevices[0]?.id ?? null);
 </script>
 
 <template>
-  <div class="h-screen overflow-hidden bg-slate-50 font-sans text-slate-800 flex flex-col">
+  <div class="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col lg:h-screen lg:overflow-hidden">
     <!-- Header Navigation -->
     <NavBar :uploadedFile="uploadedFile" />
 
     <!-- Main Content Area -->
-    <main class="flex-1 min-h-0 flex flex-col gap-6 overflow-hidden p-4 md:p-6 lg:flex-row lg:items-stretch">
+    <main class="flex-1 flex flex-col gap-6 p-4 md:p-6 lg:min-h-0 lg:flex-row lg:items-stretch lg:overflow-hidden">
       <div class="flex w-full flex-col gap-6 lg:h-full lg:min-h-0 lg:w-[300px] lg:flex-shrink-0 lg:overflow-y-auto">
         <DeviceListSidebar
           v-model:selectedDeviceId="selectedDeviceId"
           :devices="mockDevices"
-          class="lg:min-h-0 lg:flex-[1.05]"
+          class="lg:min-h-0 lg:flex-[1.3]"
         />
 
         <FileUploader 
-          class="lg:min-h-0 lg:flex-1"
+          class="lg:min-h-0 lg:flex-[0.7]"
           :uploadedFile="uploadedFile"
           :isPredicting="isPredicting"
           :uploadProgress="uploadProgress"
@@ -55,7 +55,7 @@ const selectedDeviceId = ref<string | null>(mockDevices[0]?.id ?? null);
       </div>
 
       <!-- Right Section: Prediction Results -->
-      <section class="flex-1 min-h-0 flex flex-col gap-6 overflow-hidden">
+      <section class="flex-1 flex flex-col gap-6 lg:min-h-0 lg:overflow-hidden">
           <!-- Status / Info Bar -->
           <StatusBar 
             :isPredicting="isPredicting" 
