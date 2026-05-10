@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     SCALER_X_PATH: str = os.path.join(BASE_DIR, 'models', 'scaler_x.pkl')
     SCALER_Y_PATH: str = os.path.join(BASE_DIR, 'models', 'scaler_y.pkl')
     TEMP_UPLOAD_DIR: str = os.path.join(BASE_DIR, "temp_uploads")
+    DEVICE_NAME: str = "高光谱设备"
+    DEVICE_ID: str | None = None
+    DEVICE_MOUNT_PATH: str = os.path.join(BASE_DIR, "mounted_device")
     
     class Config:
         env_file = ".env"

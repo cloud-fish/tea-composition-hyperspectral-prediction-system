@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import health, predict
+from app.routers import device, health, predict
 from app.services.model_service import model_service
 
 
@@ -27,3 +27,4 @@ app.add_middleware(
 # 注册路由
 app.include_router(health.router, prefix=settings.API_V1_STR, tags=["Health"])
 app.include_router(predict.router, prefix=settings.API_V1_STR, tags=["Predict"])
+app.include_router(device.router, prefix=settings.API_V1_STR, tags=["Device"])
