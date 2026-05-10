@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import type { UploadFile } from 'element-plus';
 import { Upload, Play, CheckCircle, Loader2, Zap, BarChart3 } from 'lucide-vue-next';
+
+const folderInputRef = ref<HTMLInputElement | null>(null);
 
 defineProps<{
   uploadedFile: any,
@@ -8,10 +11,24 @@ defineProps<{
   uploadProgress: number
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'upload-change', file: any): void,
+  (e: 'folder-change', files: File[]): void,
   (e: 'start-prediction'): void
 }>();
+
+function openFolderPicker() {
+  folderInputRef.value?.click();
+}
+
+function handleFolderSelection(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const files = Array.from(input.files ?? []);
+  if (files.length > 0) {
+    emit('folder-change', files);
+  }
+  input.value = '';
+}
 </script>
 
 <template>
@@ -48,6 +65,29 @@ defineEmits<{
             </div>
           </div>
         </el-upload>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
+        <div class="min-w-0">
+          <p class="text-xs font-semibold text-slate-700">也可以直接选择结果文件夹</p>
+          <p class="mt-1 text-[10px] leading-none text-slate-400">自动识别目录中的 `.dat` 文件用于可视化和预测</p>
+        </div>
+        <button
+          type="button"
+          class="flex-shrink-0 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-600 transition hover:bg-emerald-50"
+          @click="openFolderPicker"
+        >
+          选择文件夹
+        </button>
+        <input
+          ref="folderInputRef"
+          type="file"
+          multiple
+          webkitdirectory
+          directory
+          class="hidden"
+          @change="handleFolderSelection"
+        />
       </div>
 
       <!-- Action Button -->
