@@ -1,5 +1,25 @@
-frontend/node_modules
+# macOS / IDE
+.DS_Store
+.vscode/
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# backend / python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+*.log
+
+# local data
 backend/data/*
 data/*
-frontend/dist
-frontend/src/views/test.vue
+backend/temp_uploads/
+
+# local docs
+DEVELOPMENT_ROADMAP.md
