@@ -268,8 +268,8 @@ function handlePreviewClick(event: MouseEvent) {
     <div class="mt-5 grid gap-5 xl:grid-cols-2">
       <!-- #预览图 -->
       <div class="flex h-full flex-col rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
-        <div class="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-          <MapPinned class="h-3.5 w-3.5" />
+        <div class="mb-3 flex items-center gap-3 text-lg font-bold text-slate-700">
+          <MapPinned class="h-6 w-6" />
           <span>采集预览</span>
         </div>
 
@@ -278,7 +278,7 @@ function handlePreviewClick(event: MouseEvent) {
             <span class="text-slate-500">当前点位</span>
             <span class="font-semibold text-slate-800">{{ selectedPointLabel }}</span>
           </div>
-          <div class="mt-2 text-xs leading-5 text-slate-400">
+          <div class="mt-2 text-sm leading-6 text-slate-500">
             点击预览图可切换像素点，并重新请求该点的 204 波段光谱。
           </div>
         </div>
@@ -296,13 +296,13 @@ function handlePreviewClick(event: MouseEvent) {
           />
           <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent"></div>
           <div class="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/90 shadow-sm"></div>
-          <div class="absolute inset-x-3 bottom-3 rounded-xl bg-slate-950/70 px-3 py-2 text-left text-[11px] text-white backdrop-blur">
+          <div class="absolute inset-x-3 bottom-3 rounded-xl bg-slate-950/70 px-3 py-2.5 text-left text-sm font-medium text-white backdrop-blur">
             点击图像选择像素点
           </div>
         </button>
         <div
           v-else
-          class="flex min-h-[360px] flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white text-sm text-slate-400"
+          class="flex min-h-[360px] flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white text-base font-medium text-slate-500"
         >
           暂无预览图
         </div>
@@ -315,13 +315,13 @@ function handlePreviewClick(event: MouseEvent) {
         <!-- #光谱曲线标题 -->
         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div class="text-xs font-bold uppercase tracking-widest text-slate-400">光谱曲线</div>
-            <div class="mt-1 text-sm text-slate-500">
+            <div class="text-lg font-bold text-slate-700">光谱曲线</div>
+            <div class="mt-1 text-sm leading-6 text-slate-500">
               展示样本在不同波长下的 {{ unit }} 变化趋势
             </div>
           </div>
-          <div class="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 shadow-sm">
-            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+          <div class="flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+            <span class="h-3 w-3 rounded-full bg-emerald-500"></span>
             {{ resolvedPoints.length }} 个采样点
           </div>
         </div>
@@ -329,7 +329,7 @@ function handlePreviewClick(event: MouseEvent) {
         <div class="relative flex min-h-[360px] flex-1 flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-white px-3 py-4">
           <!-- <div class="pointer-events-none absolute inset-x-4 top-4 h-12 rounded-xl bg-gradient-to-r from-emerald-50 via-cyan-50 to-violet-50 opacity-80"></div> -->
 
-          <div v-if="!hasSpectrumData && !loading" class="flex flex-1 items-center justify-center text-sm font-medium text-slate-400">
+          <div v-if="!hasSpectrumData && !loading" class="flex flex-1 items-center justify-center text-base font-medium text-slate-500">
             暂无可展示的高光谱曲线
           </div>
           
@@ -383,7 +383,7 @@ function handlePreviewClick(event: MouseEvent) {
               x="16"
               y="20"
               fill="#94a3b8"
-              font-size="12"
+              font-size="14"
               font-weight="700"
             >
               {{ unit }}
@@ -393,20 +393,20 @@ function handlePreviewClick(event: MouseEvent) {
               :y="chartHeight - 4"
               text-anchor="end"
               fill="#94a3b8"
-              font-size="12"
+              font-size="14"
               font-weight="700"
             >
               wavelength / nm
             </text>
           </svg>
 
-          <div class="mt-3 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+          <div class="mt-3 flex items-center justify-between text-sm font-medium text-slate-500">
             <span>{{ resolvedPoints[0]?.wavelength ?? '-' }} nm</span>
             <span>{{ peakPoint ? `${peakPoint.wavelength.toFixed(0)} nm 峰值增强` : '等待光谱数据' }}</span>
             <span>{{ resolvedPoints[resolvedPoints.length - 1]?.wavelength ?? '-' }} nm</span>
           </div>
 
-          <div v-if="loading" class="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/70 text-sm font-semibold text-emerald-600">
+          <div v-if="loading" class="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/70 text-base font-semibold text-emerald-600">
             正在加载高光谱数据...
           </div>
         </div>

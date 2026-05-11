@@ -69,7 +69,7 @@ export function usePrediction() {
   };
 
   const startPrediction = async () => {
-    if (!uploadedFile.value) {
+    if (!uploadedFile.value && !uploadedSampleId.value) {
       ElMessage.warning('请先完成数据文件上传');
       return;
     }
@@ -80,7 +80,11 @@ export function usePrediction() {
     
     try {
       const formData = new FormData();
-      formData.append('file', uploadedFile.value);
+      if (uploadedSampleId.value) {
+        formData.append('sample_id', uploadedSampleId.value);
+      } else if (uploadedFile.value) {
+        formData.append('file', uploadedFile.value);
+      }
 
       const response = await axios.post('/api/predict', formData, {
         onUploadProgress: (progressEvent) => {
