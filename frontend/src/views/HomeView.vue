@@ -1,30 +1,24 @@
 <script setup lang="ts">
-import { ArrowRight, Bug, Leaf, LineChart, Radar, ShieldCheck } from 'lucide-vue-next';
+import { ArrowRight, Bug, Leaf, LineChart } from 'lucide-vue-next';
 import PlatformLayout from '../components/PlatformLayout.vue';
 
 const moduleCards = [
   {
     title: '成分分析',
-    subtitle: '茶叶高光谱预测页面',
-    description: '接入高光谱样本上传、采集预览、像素点光谱查看与茶叶关键成分智能预测能力。',
+    subtitle: '茶叶高光谱成分分析',
+    description: '围绕茶叶样本提供高光谱数据导入、预览交互、像素点光谱分析与关键成分智能预测能力。',
     to: '/tea-hyperspectral-prediction',
     icon: LineChart,
-    status: '已接入',
+    status: '已上线',
   },
   {
     title: '虫害识别',
-    subtitle: '茶园病虫害诊断页面',
-    description: '预留虫害图像采集、识别分析、风险评估和诊断建议等后续业务能力入口。',
+    subtitle: '茶园虫害识别诊断',
+    description: '面向茶园巡检场景提供虫害图像识别、风险研判与诊断建议入口，支撑茶园健康监测。',
     to: '/pest-detection',
     icon: Bug,
-    status: '准备中',
+    status: '建设中',
   },
-];
-
-const sharedCapabilities = [
-  '统一顶部导航与模块入口',
-  '平台级业务扩展与模块接入',
-  '茶园数据感知与诊断能力整合',
 ];
 </script>
 
@@ -39,22 +33,22 @@ const sharedCapabilities = [
             </div>
             <h1 class="mt-4 text-3xl font-bold tracking-tight md:text-4xl">茶园智能感知与诊断平台</h1>
             <p class="mt-4 max-w-2xl text-sm leading-7 text-emerald-50 md:text-base">
-              这里承载平台公共入口和能力概览，后续新增模块时可以继续在首页聚合展示，再分别进入对应业务页面。
+              平台面向茶园场景提供成分分析、虫害识别等核心业务入口，统一承载数据感知、智能分析与诊断决策能力，支撑茶叶品质评估和茶园健康管理。
             </p>
           </div>
 
           <div class="grid gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur sm:grid-cols-3 lg:min-w-[460px]">
             <div>
-              <div class="text-xs uppercase tracking-[0.2em] text-emerald-100">Modules</div>
-              <div class="mt-2 text-lg font-semibold">2 个入口</div>
+              <div class="text-xs uppercase tracking-[0.2em] text-emerald-100">业务模块</div>
+              <div class="mt-2 text-lg font-semibold">2 个核心模块</div>
             </div>
             <div>
-              <div class="text-xs uppercase tracking-[0.2em] text-emerald-100">Current Focus</div>
-              <div class="mt-2 text-lg font-semibold">成分分析</div>
+              <div class="text-xs uppercase tracking-[0.2em] text-emerald-100">当前能力</div>
+              <div class="mt-2 text-lg font-semibold">成分分析已上线</div>
             </div>
             <div>
-              <div class="text-xs uppercase tracking-[0.2em] text-emerald-100">Platform</div>
-              <div class="mt-2 text-lg font-semibold">持续扩展</div>
+              <div class="text-xs uppercase tracking-[0.2em] text-emerald-100">平台定位</div>
+              <div class="mt-2 text-lg font-semibold">智能感知与诊断</div>
             </div>
           </div>
         </div>
@@ -89,46 +83,5 @@ const sharedCapabilities = [
         </RouterLink>
       </section>
 
-      <section class="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
-        <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div class="flex items-center gap-3">
-            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
-              <Radar class="h-5 w-5" />
-            </div>
-            <div>
-              <h2 class="text-xl font-bold text-slate-800">平台公共能力</h2>
-              <p class="mt-1 text-sm text-slate-500">首页保留平台层面的统一说明与入口分发</p>
-            </div>
-          </div>
-
-          <div class="mt-5 grid gap-3">
-            <div
-              v-for="capability in sharedCapabilities"
-              :key="capability"
-              class="rounded-2xl bg-slate-50 px-4 py-4 text-sm font-medium text-slate-600"
-            >
-              {{ capability }}
-            </div>
-          </div>
-        </article>
-
-        <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div class="flex items-center gap-3">
-            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-              <ShieldCheck class="h-5 w-5" />
-            </div>
-            <div>
-              <h2 class="text-xl font-bold text-slate-800">当前拆分结果</h2>
-              <p class="mt-1 text-sm text-slate-500">页面职责已经按平台层和业务层分开</p>
-            </div>
-          </div>
-
-          <div class="mt-5 space-y-3 text-sm leading-7 text-slate-500">
-            <p>`HomeView` 现在只负责平台公共内容。</p>
-            <p>原来的业务页面已经迁移为“茶叶高光谱预测页面”。</p>
-            <p>后续新增业务模块时，可以继续复用这个首页结构扩展。</p>
-          </div>
-        </article>
-      </section>
   </PlatformLayout>
 </template>

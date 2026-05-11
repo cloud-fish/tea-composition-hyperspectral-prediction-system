@@ -9,6 +9,7 @@ const props = defineProps<{
 
 const route = useRoute();
 const navItems = [
+  { label: '首页', to: '/' },
   { label: '成分分析', to: '/tea-hyperspectral-prediction' },
   { label: '虫害识别', to: '/pest-detection' },
 ];
@@ -17,18 +18,21 @@ const isHomeRoute = computed(() => route.path === '/');
 const isCompositionRoute = computed(() => route.path.startsWith('/tea-hyperspectral-prediction'));
 const isPestDetectionRoute = computed(() => route.path.startsWith('/pest-detection'));
 const isNavItemActive = (path: string) => {
+  if (path === '/') {
+    return route.path === '/';
+  }
   return route.path.startsWith(path);
 };
 
 const systemStatusLabel = computed(() => {
   if (isHomeRoute.value) {
-    return '平台总览';
+    return '平台运行中';
   }
   if (isPestDetectionRoute.value) {
-    return '功能准备中';
+    return '模块建设中';
   }
   if (isCompositionRoute.value) {
-    return props.uploadedFile ? '系统就绪' : '等待输入';
+    return props.uploadedFile ? '分析就绪' : '等待数据';
   }
   return '平台在线';
 });
