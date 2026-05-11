@@ -20,6 +20,9 @@ frontend/.env.*.local
 backend/data/*
 data/*
 backend/temp_uploads/
+backend/高光谱设备目录监听接入服务设计方案.md
 
 # local docs
 DEVELOPMENT_ROADMAP.md
+
+
