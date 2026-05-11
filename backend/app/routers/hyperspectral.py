@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse
 from app.schemas.hyperspectral import (
     HyperspectralSampleMeta,
     HyperspectralSpectrumResponse,
-    UploadedFolderImportResponse,
+    UploadedSampleImportResponse,
 )
 from app.services.hyperspectral_service import hyperspectral_service
 
@@ -30,13 +30,7 @@ async def get_hyperspectral_preview(sample_id: str, kind: str = "scene"):
     return FileResponse(preview_path, media_type="image/png", filename=preview_path.name)
 
 
-@router.post("/hyperspectral/upload/spectrum", response_model=HyperspectralSpectrumResponse)
-async def upload_hyperspectral_spectrum(file: UploadFile = File(...)):
-    """解析手动上传的高光谱文件并返回平均光谱曲线"""
-    return HyperspectralSpectrumResponse(**(await hyperspectral_service.get_uploaded_spectrum(file)))
-
-
-@router.post("/hyperspectral/upload/folder", response_model=UploadedFolderImportResponse)
-async def upload_hyperspectral_folder(files: list[UploadFile] = File(...)):
-    """保存手动上传的高光谱结果文件夹，并复用原有样本接口访问"""
-    return UploadedFolderImportResponse(**(await hyperspectral_service.import_uploaded_folder(files)))
+@router.post("/hyperspectral/upload/import", response_model=UploadedSampleImportResponse)
+async def import_uploaded_hyperspectral_sample(files: list[UploadFile] = File(...)):
+    """统一导入手动上传的文件或文件夹，并复用原有样本接口访问"""
+    return UploadedSampleImportResponse(**(await hyperspectral_service.import_uploaded_files(files)))

@@ -2,11 +2,6 @@ import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import axios from 'axios';
 
-export interface SpectrumPoint {
-  wavelength: number;
-  intensity: number;
-}
-
 export interface PredictionResults {
   catechin: number;
   caffeine: number;
@@ -14,19 +9,7 @@ export interface PredictionResults {
   theanine: number;
 }
 
-export interface UploadedSpectrumResponse {
-  sample_id: string;
-  sample_name: string;
-  device_name: string;
-  acquisition_date: string | null;
-  unit: string;
-  x: number;
-  y: number;
-  preview_url: string | null;
-  points: SpectrumPoint[];
-}
-
-export interface UploadedFolderImportResponse {
+export interface UploadedSampleImportResponse {
   sample_id: string;
 }
 
@@ -39,7 +22,6 @@ export function usePrediction() {
   const uploadProgress = ref(0);
   const hasResults = ref(false);
   const uploadedFile = ref<any>(null);
-  const uploadedSpectrum = ref<UploadedSpectrumResponse | null>(null);
   const uploadedSampleId = ref<string | null>(null);
   const isUploadedSpectrumLoading = ref(false);
   const uploadedSpectrumError = ref<string | null>(null);
@@ -60,33 +42,10 @@ export function usePrediction() {
     return datFiles.find((file) => file.name.toUpperCase().startsWith('REFLECTANCE_')) ?? datFiles[0];
   };
 
-  const loadUploadedSpectrum = async (file: File) => {
+  const importUploadedFiles = async (files: File[]) => {
     isUploadedSpectrumLoading.value = true;
     uploadedSpectrumError.value = null;
     uploadedSampleId.value = null;
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await axios.post<UploadedSpectrumResponse>('/api/hyperspectral/upload/spectrum', formData);
-      uploadedSpectrum.value = response.data;
-      return true;
-    } catch (error: any) {
-      console.error('Upload spectrum error:', error);
-      uploadedSpectrum.value = null;
-      uploadedSpectrumError.value = error.response?.data?.detail ?? '上传文件的高光谱可视化解析失败';
-      ElMessage.warning(uploadedSpectrumError.value);
-      return false;
-    } finally {
-      isUploadedSpectrumLoading.value = false;
-    }
-  };
-
-  const loadUploadedFolderSpectrum = async (files: File[]) => {
-    isUploadedSpectrumLoading.value = true;
-    uploadedSpectrumError.value = null;
-    uploadedSpectrum.value = null;
 
     try {
       const formData = new FormData();
@@ -95,13 +54,13 @@ export function usePrediction() {
         formData.append('files', file, relativeFile.webkitRelativePath || file.name);
       });
 
-      const response = await axios.post<UploadedFolderImportResponse>('/api/hyperspectral/upload/folder', formData);
+      const response = await axios.post<UploadedSampleImportResponse>('/api/hyperspectral/upload/import', formData);
       uploadedSampleId.value = response.data.sample_id;
       return true;
     } catch (error: any) {
-      console.error('Upload folder spectrum error:', error);
+      console.error('Import uploaded files error:', error);
       uploadedSampleId.value = null;
-      uploadedSpectrumError.value = error.response?.data?.detail ?? '上传文件夹的高光谱可视化解析失败';
+      uploadedSpectrumError.value = error.response?.data?.detail ?? '上传内容的高光谱导入失败';
       ElMessage.warning(uploadedSpectrumError.value);
       return false;
     } finally {
@@ -156,7 +115,7 @@ export function usePrediction() {
         return;
       }
       uploadedFile.value = file.raw;
-      const success = await loadUploadedSpectrum(file.raw);
+      const success = await importUploadedFiles([file.raw]);
       if (success) {
         ElMessage({
           message: '数据文件已装载',
@@ -175,7 +134,7 @@ export function usePrediction() {
     }
 
     uploadedFile.value = datFile;
-    const success = await loadUploadedFolderSpectrum(files);
+    const success = await importUploadedFiles(files);
     if (success) {
       ElMessage({
         message: `文件夹已装载，已识别 ${datFile.name}`,
@@ -189,7 +148,6 @@ export function usePrediction() {
     uploadedFile.value = null;
     hasResults.value = false;
     uploadProgress.value = 0;
-    uploadedSpectrum.value = null;
     uploadedSampleId.value = null;
     uploadedSpectrumError.value = null;
   };
@@ -199,7 +157,6 @@ export function usePrediction() {
     uploadProgress,
     hasResults,
     uploadedFile,
-    uploadedSpectrum,
     uploadedSampleId,
     isUploadedSpectrumLoading,
     uploadedSpectrumError,

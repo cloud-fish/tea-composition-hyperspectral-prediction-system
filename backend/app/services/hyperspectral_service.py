@@ -11,7 +11,6 @@ import numpy as np
 from fastapi import HTTPException, UploadFile
 
 from app.config import settings
-from utils import ReadHyperspectrum
 
 
 @dataclass
@@ -92,23 +91,9 @@ class HyperspectralService:
             "preview_url": self._build_preview_url(sample_id, "scene"),
         }
 
-    async def get_uploaded_spectrum(self, file: UploadFile) -> dict[str, Any]:
-        if not file.filename or not file.filename.lower().endswith(".dat"):
-            raise HTTPException(status_code=400, detail="仅支持 .dat 格式的高光谱文件")
-
-        os.makedirs(settings.TEMP_UPLOAD_DIR, exist_ok=True)
-        session_dir = Path(settings.TEMP_UPLOAD_DIR) / f"single_{uuid4().hex}"
-        session_dir.mkdir(parents=True, exist_ok=True)
-
-        try:
-            dat_path = await self._save_upload_file(file, session_dir)
-            return self._build_uploaded_response(dat_path)
-        finally:
-            shutil.rmtree(session_dir, ignore_errors=True)
-
-    async def import_uploaded_folder(self, files: list[UploadFile]) -> dict[str, str]:
+    async def import_uploaded_files(self, files: list[UploadFile]) -> dict[str, str]:
         if not files:
-            raise HTTPException(status_code=400, detail="上传文件夹为空")
+            raise HTTPException(status_code=400, detail="上传内容为空")
 
         sample_id = f"upload_{uuid4().hex[:8]}"
         sample_dir = self.data_root / sample_id / "results"
@@ -126,7 +111,8 @@ class HyperspectralService:
             dat_path = self._select_uploaded_dat_path(saved_paths)
             hdr_path = self._select_uploaded_hdr_path(saved_paths, dat_path)
             if hdr_path is None or not hdr_path.exists():
-                raise HTTPException(status_code=400, detail="上传文件夹中缺少 .hdr 文件，无法复用原有高光谱取点功能")
+                hdr_path = self._create_default_hdr(dat_path, sample_id)
+                saved_paths.append(hdr_path)
 
             self._record_cache.pop(sample_id, None)
             self._cube_cache.pop(sample_id, None)
@@ -254,50 +240,27 @@ class HyperspectralService:
         hdr_paths = [path for path in saved_paths if path.is_file() and path.suffix.lower() == ".hdr"]
         return hdr_paths[0] if hdr_paths else None
 
-    def _build_uploaded_response(self, dat_path: Path, hdr_path: Path | None = None) -> dict[str, Any]:
-        metadata = self._parse_envi_header(hdr_path) if hdr_path and hdr_path.exists() else None
-        mean_spectrum = np.asarray(ReadHyperspectrum.read_hyperspectrum(str(dat_path)), dtype=np.float64)
-        wavelengths = self._resolve_uploaded_wavelengths(metadata, len(mean_spectrum))
-        peak_index = int(np.argmax(mean_spectrum))
-        sample_count = int(metadata["samples"]) if metadata and "samples" in metadata else 512
-        line_count = int(metadata["lines"]) if metadata and "lines" in metadata else 512
-
-        return {
-            "sample_id": "upload",
-            "sample_name": dat_path.stem,
-            "device_name": metadata.get("sensor type", "手动上传数据") if metadata else "手动上传数据",
-            "acquisition_date": metadata.get("acquisition date") if metadata else None,
-            "unit": "反射率",
-            "x": sample_count // 2,
-            "y": line_count // 2,
-            "points": [
-                {
-                    "wavelength": float(wavelength),
-                    "intensity": float(intensity),
-                }
-                for wavelength, intensity in zip(wavelengths, mean_spectrum, strict=True)
-            ],
-            "statistics": {
-                "min_intensity": float(np.min(mean_spectrum)),
-                "max_intensity": float(np.max(mean_spectrum)),
-                "avg_intensity": float(np.mean(mean_spectrum)),
-                "peak_wavelength": float(wavelengths[peak_index]),
-                "peak_intensity": float(mean_spectrum[peak_index]),
-            },
-            "preview_url": None,
-        }
-
-    def _resolve_uploaded_wavelengths(
-        self,
-        metadata: dict[str, Any] | None,
-        spectrum_length: int,
-    ) -> np.ndarray:
-        if metadata:
-            wavelengths = metadata.get("wavelength")
-            if isinstance(wavelengths, list) and len(wavelengths) == spectrum_length:
-                return np.asarray(wavelengths, dtype=np.float64)
-
-        return np.arange(400, 400 + spectrum_length * 3, 3, dtype=np.float64)
+    def _create_default_hdr(self, dat_path: Path, sample_id: str) -> Path:
+        hdr_path = dat_path.with_suffix(".hdr")
+        wavelengths = ", ".join(f"{value:.2f}" for value in np.arange(400, 1012, 3, dtype=np.float64))
+        hdr_content = "\n".join([
+            "ENVI",
+            "description = {Generated from uploaded .dat file}",
+            "samples = 512",
+            "lines = 512",
+            "bands = 204",
+            "header offset = 0",
+            "file type = ENVI Standard",
+            "data type = 4",
+            "interleave = bil",
+            "sensor type = Manual Upload",
+            "byte order = 0",
+            f"sample id = {sample_id}",
+            f"wavelength = {{{wavelengths}}}",
+            "",
+        ])
+        hdr_path.write_text(hdr_content, encoding="utf-8")
+        return hdr_path
 
     def _parse_envi_header(self, hdr_path: Path) -> dict[str, Any]:
         lines = hdr_path.read_text(encoding="utf-8", errors="ignore").splitlines()

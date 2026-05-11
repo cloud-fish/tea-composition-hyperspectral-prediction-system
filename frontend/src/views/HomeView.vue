@@ -16,7 +16,6 @@ const {
   uploadProgress,
   hasResults,
   uploadedFile,
-  uploadedSpectrum,
   uploadedSampleId,
   isUploadedSpectrumLoading,
   uploadedSpectrumError,
@@ -59,24 +58,22 @@ watch(uploadedSampleId, async (newSampleId) => {
 }, { immediate: true });
 
 const activeVisualizationTitle = computed(() =>
-  uploadedSampleId.value ? '高光谱数据可视化' : (uploadedSpectrum.value ? '人工上传高光谱反射率' : '高光谱数据可视化'),
+  '高光谱数据可视化',
 );
 const activeVisualizationDeviceName = computed(() =>
-  uploadedSpectrum.value?.device_name || sampleMeta.value?.device_name || null,
+  sampleMeta.value?.device_name || null,
 );
 const activeVisualizationSampleName = computed(() =>
-  uploadedSpectrum.value?.sample_name || spectrum.value?.sample_name || sampleMeta.value?.sample_name || null,
+  spectrum.value?.sample_name || sampleMeta.value?.sample_name || null,
 );
 const activeVisualizationCapturedAt = computed(() =>
-  uploadedSpectrum.value?.acquisition_date || spectrum.value?.acquisition_date || sampleMeta.value?.acquisition_date || null,
+  spectrum.value?.acquisition_date || sampleMeta.value?.acquisition_date || null,
 );
-const activeVisualizationUnit = computed(() => uploadedSpectrum.value?.unit || spectrum.value?.unit || '反射率');
-const activeVisualizationPoints = computed(() => uploadedSpectrum.value?.points ?? spectrumPoints.value);
-const activeVisualizationPreviewUrl = computed(() =>
-  uploadedSpectrum.value?.preview_url ?? previewUrl.value,
-);
-const activeVisualizationSelectedX = computed(() => uploadedSpectrum.value?.x ?? selectedPoint.value?.x ?? null);
-const activeVisualizationSelectedY = computed(() => uploadedSpectrum.value?.y ?? selectedPoint.value?.y ?? null);
+const activeVisualizationUnit = computed(() => spectrum.value?.unit || '反射率');
+const activeVisualizationPoints = computed(() => spectrumPoints.value);
+const activeVisualizationPreviewUrl = computed(() => previewUrl.value);
+const activeVisualizationSelectedX = computed(() => selectedPoint.value?.x ?? null);
+const activeVisualizationSelectedY = computed(() => selectedPoint.value?.y ?? null);
 const activeVisualizationLoading = computed(() =>
   isUploadedSpectrumLoading.value || (Boolean(uploadedSampleId.value) && (isMetaLoading.value || isSpectrumLoading.value)),
 );
@@ -182,8 +179,8 @@ const activeVisualizationError = computed(() =>
             :unit="activeVisualizationUnit"
             :points="activeVisualizationPoints"
             :previewImageUrl="activeVisualizationPreviewUrl"
-            :imageWidth="uploadedSpectrum ? null : (sampleMeta?.samples || null)"
-            :imageHeight="uploadedSpectrum ? null : (sampleMeta?.lines || null)"
+            :imageWidth="sampleMeta?.samples || null"
+            :imageHeight="sampleMeta?.lines || null"
             :selectedX="activeVisualizationSelectedX"
             :selectedY="activeVisualizationSelectedY"
             :loading="activeVisualizationLoading"

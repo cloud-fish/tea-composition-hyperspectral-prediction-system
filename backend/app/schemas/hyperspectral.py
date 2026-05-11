@@ -46,5 +46,5 @@ class HyperspectralSpectrumResponse(BaseModel):
     preview_url: str | None = None
 
 
-class UploadedFolderImportResponse(BaseModel):
+class UploadedSampleImportResponse(BaseModel):
     sample_id: str

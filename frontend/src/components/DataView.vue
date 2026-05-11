@@ -207,36 +207,12 @@ const summaryItems = computed(() => [
   },
 ]);
 
-const spectralBands = [
-  { label: 'VIS', start: 400, end: 700, color: 'from-violet-500/30 via-cyan-400/25 to-emerald-400/25' },
-  { label: 'NIR', start: 700, end: 1000, color: 'from-emerald-400/20 to-teal-500/20' },
-  { label: 'SWIR', start: 1000, end: 1800, color: 'from-amber-400/20 to-rose-400/20' },
-];
-
 const selectedPointLabel = computed(() => {
   if (props.selectedX == null || props.selectedY == null) {
     return '未选择';
   }
   return `(${props.selectedX}, ${props.selectedY})`;
 });
-
-function getBandStyle(start: number, end: number) {
-  const first = resolvedPoints.value[0]?.wavelength ?? start;
-  const last = resolvedPoints.value[resolvedPoints.value.length - 1]?.wavelength ?? end;
-  const span = Math.max(last - first, 1);
-  const left = ((Math.max(start, first) - first) / span) * 100;
-  const width = ((Math.min(end, last) - Math.max(start, first)) / span) * 100;
-
-  return {
-    left: `${Math.max(left, 0)}%`,
-    width: `${Math.max(width, 0)}%`,
-  };
-}
-
-function shouldShowBandLabel(start: number, end: number) {
-  const width = Number.parseFloat(getBandStyle(start, end).width);
-  return width >= 14;
-}
 
 function handlePreviewClick(event: MouseEvent) {
   if (!props.previewImageUrl || !props.imageWidth || !props.imageHeight) {
@@ -256,6 +232,7 @@ function handlePreviewClick(event: MouseEvent) {
 
 <template>
   <section class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm md:p-6">
+    <!-- #顶部信息 -->
     <div class="flex flex-col gap-4 border-b border-slate-100 pb-4 lg:flex-row lg:items-start lg:justify-between">
       <div class="min-w-0">
         <div class="flex items-center gap-3">
@@ -287,8 +264,55 @@ function handlePreviewClick(event: MouseEvent) {
       </div>
     </div>
 
-    <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_240px]">
-      <div class="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+    <!-- #预览图 -->
+    <div class="mt-5 grid gap-5 xl:grid-cols-2">
+      <!-- #预览图 -->
+      <div class="flex h-full flex-col rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
+        <div class="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+          <MapPinned class="h-3.5 w-3.5" />
+          <span>采集预览</span>
+        </div>
+
+        <div class="mt-3 rounded-xl bg-white px-3 py-3 text-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">当前点位</span>
+            <span class="font-semibold text-slate-800">{{ selectedPointLabel }}</span>
+          </div>
+          <div class="mt-2 text-xs leading-5 text-slate-400">
+            点击预览图可切换像素点，并重新请求该点的 204 波段光谱。
+          </div>
+        </div>
+
+        <button
+          v-if="previewImageUrl"
+          type="button"
+          class="group relative block min-h-[360px] flex-1 overflow-hidden rounded-2xl border border-emerald-100 bg-white"
+          @click="handlePreviewClick"
+        >
+          <img
+            :src="previewImageUrl"
+            :alt="sampleName || '高光谱预览图'"
+            class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+          />
+          <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent"></div>
+          <div class="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/90 shadow-sm"></div>
+          <div class="absolute inset-x-3 bottom-3 rounded-xl bg-slate-950/70 px-3 py-2 text-left text-[11px] text-white backdrop-blur">
+            点击图像选择像素点
+          </div>
+        </button>
+        <div
+          v-else
+          class="flex min-h-[360px] flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white text-sm text-slate-400"
+        >
+          暂无预览图
+        </div>
+
+
+      </div>
+
+      <!-- #光谱曲线 -->
+      <div class="flex h-full flex-col rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+        <!-- #光谱曲线标题 -->
         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div class="text-xs font-bold uppercase tracking-widest text-slate-400">光谱曲线</div>
@@ -301,45 +325,20 @@ function handlePreviewClick(event: MouseEvent) {
             {{ resolvedPoints.length }} 个采样点
           </div>
         </div>
+        <!-- #光谱曲线内容 -->
+        <div class="relative flex min-h-[360px] flex-1 flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-white px-3 py-4">
+          <!-- <div class="pointer-events-none absolute inset-x-4 top-4 h-12 rounded-xl bg-gradient-to-r from-emerald-50 via-cyan-50 to-violet-50 opacity-80"></div> -->
 
-        <div class="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white px-3 py-4">
-          <div class="pointer-events-none absolute inset-x-4 top-4 h-12 rounded-xl bg-gradient-to-r from-emerald-50 via-cyan-50 to-violet-50 opacity-80"></div>
-
-          <div class="mb-3 flex items-center justify-between px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            <span
-              v-for="band in spectralBands"
-              :key="`${band.label}-legend`"
-              class="min-w-0"
-            >
-              {{ band.label }}
-            </span>
-          </div>
-
-          <div class="relative mb-4 h-8 overflow-hidden rounded-full bg-slate-100/80">
-            <div
-              v-for="band in spectralBands"
-              :key="band.label"
-              class="absolute top-0 h-full rounded-full bg-gradient-to-r"
-              :class="band.color"
-              :style="getBandStyle(band.start, band.end)"
-            >
-              <span
-                v-if="shouldShowBandLabel(band.start, band.end)"
-                class="absolute inset-y-0 left-3 flex items-center text-[10px] font-bold uppercase tracking-widest text-slate-600"
-              >
-                {{ band.label }}
-              </span>
-            </div>
-          </div>
-
-          <div v-if="!hasSpectrumData && !loading" class="flex h-[280px] items-center justify-center text-sm font-medium text-slate-400">
+          <div v-if="!hasSpectrumData && !loading" class="flex flex-1 items-center justify-center text-sm font-medium text-slate-400">
             暂无可展示的高光谱曲线
           </div>
-
+          
+          <!-- #光谱曲线图表 -->
           <svg
             v-else
-            class="h-auto w-full"
+            class="min-h-0 flex-1 w-full"
             :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
+            preserveAspectRatio="none"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -413,93 +412,54 @@ function handlePreviewClick(event: MouseEvent) {
         </div>
       </div>
 
-      <div class="flex flex-col gap-4">
-        <div class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
-          <div class="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-            <MapPinned class="h-3.5 w-3.5" />
-            <span>采集预览</span>
-          </div>
+    </div>
 
-          <button
-            v-if="previewImageUrl"
-            type="button"
-            class="group relative block w-full overflow-hidden rounded-2xl border border-emerald-100 bg-white"
-            @click="handlePreviewClick"
-          >
-            <img
-              :src="previewImageUrl"
-              :alt="sampleName || '高光谱预览图'"
-              class="aspect-square w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-            />
-            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent"></div>
-            <div class="pointer-events-none absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/90 shadow-sm"></div>
-            <div class="absolute inset-x-3 bottom-3 rounded-xl bg-slate-950/70 px-3 py-2 text-left text-[11px] text-white backdrop-blur">
-              点击图像选择像素点
-            </div>
-          </button>
-          <div
-            v-else
-            class="flex aspect-square items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white text-sm text-slate-400"
-          >
-            暂无预览图
+    <!-- #数据统计 -->
+    <div class="mt-5 grid gap-4 lg:grid-cols-3">
+      <div class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
+        <div class="text-[11px] font-bold uppercase tracking-widest text-slate-400">数据统计</div>
+        <div class="mt-4 space-y-3">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-500">最小值</span>
+            <span class="font-bold text-slate-800">{{ hasSpectrumData ? minIntensity.toFixed(3) : '--' }}</span>
           </div>
-
-          <div class="mt-3 rounded-xl bg-white px-3 py-3 text-sm">
-            <div class="flex items-center justify-between">
-              <span class="text-slate-500">当前点位</span>
-              <span class="font-semibold text-slate-800">{{ selectedPointLabel }}</span>
-            </div>
-            <div class="mt-2 text-xs leading-5 text-slate-400">
-              点击预览图可切换像素点，并重新请求该点的 204 波段光谱。
-            </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-500">最大值</span>
+            <span class="font-bold text-slate-800">{{ hasSpectrumData ? maxIntensity.toFixed(3) : '--' }}</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-500">平均值</span>
+            <span class="font-bold text-slate-800">{{ hasSpectrumData ? avgIntensity.toFixed(3) : '--' }}</span>
           </div>
         </div>
+      </div>
 
-        <div class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
-          <div class="text-[11px] font-bold uppercase tracking-widest text-slate-400">数据统计</div>
-          <div class="mt-4 space-y-3">
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-slate-500">最小值</span>
-              <span class="font-bold text-slate-800">{{ hasSpectrumData ? minIntensity.toFixed(3) : '--' }}</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-slate-500">最大值</span>
-              <span class="font-bold text-slate-800">{{ hasSpectrumData ? maxIntensity.toFixed(3) : '--' }}</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-slate-500">平均值</span>
-              <span class="font-bold text-slate-800">{{ hasSpectrumData ? avgIntensity.toFixed(3) : '--' }}</span>
-            </div>
+      <div class="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-4">
+        <div class="text-[11px] font-bold uppercase tracking-widest text-emerald-600">采集信息</div>
+        <div class="mt-4 space-y-3 text-sm text-slate-600">
+          <div class="flex items-center justify-between gap-3">
+            <span>设备</span>
+            <span class="font-semibold text-slate-800">{{ deviceName }}</span>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <span>样本</span>
+            <span class="truncate font-semibold text-slate-800">{{ sampleName || '--' }}</span>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <span>时间</span>
+            <span class="font-semibold text-slate-800">{{ capturedAtLabel }}</span>
           </div>
         </div>
+      </div>
 
-        <div class="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-4">
-          <div class="text-[11px] font-bold uppercase tracking-widest text-emerald-600">采集信息</div>
-          <div class="mt-4 space-y-3 text-sm text-slate-600">
-            <div class="flex items-center justify-between gap-3">
-              <span>设备</span>
-              <span class="font-semibold text-slate-800">{{ deviceName }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span>样本</span>
-              <span class="truncate font-semibold text-slate-800">{{ sampleName || '--' }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span>时间</span>
-              <span class="font-semibold text-slate-800">{{ capturedAtLabel }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="rounded-2xl bg-slate-900 px-4 py-4 text-white">
-          <div class="text-[11px] font-bold uppercase tracking-widest text-emerald-400">分析提示</div>
-          <p v-if="error" class="mt-3 text-sm leading-6 text-rose-200">
-            {{ error }}
-          </p>
-          <p v-else class="mt-3 text-sm leading-6 text-slate-300">
-            当前组件已支持真实高光谱数据接入。点击右侧预览图，可以查看不同像素位置的反射率曲线。
-          </p>
-        </div>
+      <div class="rounded-2xl bg-slate-900 px-4 py-4 text-white">
+        <div class="text-[11px] font-bold uppercase tracking-widest text-emerald-400">分析提示</div>
+        <p v-if="error" class="mt-3 text-sm leading-6 text-rose-200">
+          {{ error }}
+        </p>
+        <p v-else class="mt-3 text-sm leading-6 text-slate-300">
+          当前组件已支持真实高光谱数据接入。点击右侧预览图，可以查看不同像素位置的反射率曲线。
+        </p>
       </div>
     </div>
   </section>
