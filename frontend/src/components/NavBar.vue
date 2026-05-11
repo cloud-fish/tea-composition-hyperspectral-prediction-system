@@ -13,8 +13,8 @@ defineProps<{
         <Leaf class="w-5 h-5 md:w-6 md:h-6" />
       </div>
       <div class="flex flex-col">
-        <h1 class="text-base md:text-xl font-bold text-slate-800 leading-none">茶叶四组分高光谱预测系统</h1>
-        <p class="hidden sm:block text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold">Hyperspectral Intelligence Prediction System</p>
+        <h1 class="text-base md:text-xl font-bold text-slate-800 leading-none">茶园智能感知与诊断平台</h1>
+        <p class="hidden sm:block text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold">Tea Garden Intelligent Sensing And Diagnosis Platform</p>
       </div>
     </div>
     <div class="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-slate-500">

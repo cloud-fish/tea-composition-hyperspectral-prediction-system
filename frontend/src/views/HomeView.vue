@@ -207,7 +207,7 @@ const activeVisualizationError = computed(() =>
           </div>
 
           <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[9px] text-slate-400 font-bold uppercase pb-4">
-            <p>© 2026 TEA LAB · v0.1.0</p>
+            <p>© 2026 茶园智能感知与诊断平台 · v0.1.0</p>
             <div class="flex gap-4">
               <button class="hover:text-emerald-600 transition-colors" @click="resetPrediction">重置系统</button>
               <span class="hidden sm:inline">|</span>

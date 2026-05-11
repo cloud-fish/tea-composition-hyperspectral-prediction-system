@@ -2,7 +2,7 @@ import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "茶叶成分高光谱预测 API"
+    PROJECT_NAME: str = "茶园智能感知与诊断平台 API"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api"
     

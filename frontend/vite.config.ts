@@ -14,9 +14,9 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         manifest: {
-          name: '茶叶成分高光谱预测系统',
-          short_name: '茶叶预测',
-          description: '基于深度学习高光谱分析技术的茶叶化学成分预测系统',
+          name: '茶园智能感知与诊断平台',
+          short_name: '茶园智能感知',
+          description: '茶园智能感知与诊断平台',
           theme_color: '#059669',
           icons: [
             {
