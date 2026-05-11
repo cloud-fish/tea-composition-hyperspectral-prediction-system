@@ -2,3 +2,4 @@ frontend/node_modules
 backend/data/*
 data/*
 frontend/dist
+frontend/src/views/test.vue
