@@ -79,7 +79,7 @@ class HyperspectralService:
                     "wavelength": float(wavelength),
                     "intensity": float(intensity),
                 }
-                for wavelength, intensity in zip(wavelengths, spectrum, strict=True)
+                for wavelength, intensity in zip(wavelengths, spectrum)
             ],
             "statistics": {
                 "min_intensity": float(np.min(spectrum)),

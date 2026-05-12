@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from typing import Optional
+
 
 
 class SpectrumPoint(BaseModel):
@@ -18,7 +20,7 @@ class HyperspectralSampleMeta(BaseModel):
     sample_id: str
     sample_name: str
     device_name: str
-    acquisition_date: str | None = None
+    acquisition_date: Optional[str] = None
     samples: int
     lines: int
     bands: int
@@ -29,21 +31,21 @@ class HyperspectralSampleMeta(BaseModel):
     wavelength_count: int
     center_x: int
     center_y: int
-    preview_url: str | None = None
-    reflectance_preview_url: str | None = None
+    preview_url: Optional[str] = None
+    reflectance_preview_url: Optional[str] = None
 
 
 class HyperspectralSpectrumResponse(BaseModel):
     sample_id: str
     sample_name: str
     device_name: str
-    acquisition_date: str | None = None
+    acquisition_date: Optional[str] = None
     unit: str
     x: int
     y: int
     points: list[SpectrumPoint]
     statistics: SpectrumStatistics
-    preview_url: str | None = None
+    preview_url: Optional[str] = None
 
 
 class UploadedSampleImportResponse(BaseModel):

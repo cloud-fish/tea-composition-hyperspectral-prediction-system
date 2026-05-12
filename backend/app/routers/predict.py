@@ -2,13 +2,14 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from app.schemas.schemas import PredictionResponse
 from app.services.spectrum_service import process_uploaded_file, process_imported_sample
 from app.services.model_service import model_service
+from typing import Optional
 
 router = APIRouter()
 
 @router.post("/predict", response_model=PredictionResponse)
 async def predict_spectrum(
-    file: UploadFile | None = File(default=None),
-    sample_id: str | None = Form(default=None),
+    file: Optional[UploadFile] = File(default=None),
+    sample_id: Optional[str] = Form(default=None),
 ):
     """接收高光谱dat文件或已导入样本并返回预测结果"""
     print("--- 收到上传请求 ---")
