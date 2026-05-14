@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import LargeModelQa from './components/LargeModelQa.vue'
 </script>
 
 <template>
-  <RouterView />
+  <RouterView v-slot="{ Component }">
+    <KeepAlive>
+      <component :is="Component" />
+    </KeepAlive>
+  </RouterView>
+  <LargeModelQa />
 </template>
 
 <style>
@@ -77,5 +83,3 @@ import { RouterView } from 'vue-router'
   letter-spacing: -0.025em !important;
 }
 </style>
-
-

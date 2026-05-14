@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import LargeModelQa from './LargeModelQa.vue';
 import NavBar from './NavBar.vue';
 
 withDefaults(defineProps<{
@@ -19,6 +18,5 @@ withDefaults(defineProps<{
     <main :class="mainClass">
       <slot />
     </main>
-    <LargeModelQa />
   </div>
 </template>

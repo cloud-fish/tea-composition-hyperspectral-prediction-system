@@ -173,6 +173,8 @@ const sendMessage = async () => {
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
+  event.stopPropagation();
+
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault();
     void sendMessage();
@@ -252,106 +254,115 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <transition
-    enter-active-class="transition duration-200 ease-out"
-    enter-from-class="translate-y-3 opacity-0"
-    enter-to-class="translate-y-0 opacity-100"
-    leave-active-class="transition duration-150 ease-in"
-    leave-from-class="translate-y-0 opacity-100"
-    leave-to-class="translate-y-3 opacity-0"
-  >
-    <section
-      v-if="isOpen"
-      data-qa-panel
-      :style="panelStyle"
-      :class="[
-        isDragging ? 'select-none shadow-2xl shadow-emerald-900/20' : 'shadow-2xl shadow-slate-900/20',
-        'fixed bottom-24 right-5 z-50 flex h-[min(620px,calc(100vh-120px))] w-[calc(100vw-40px)] max-w-[420px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white md:right-6',
-      ]"
+  <Teleport to="body">
+    <transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="translate-y-3 opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="translate-y-3 opacity-0"
     >
-      <div
-        class="flex cursor-move touch-none items-start justify-between gap-3 border-b border-slate-100 px-4 py-4"
-        @pointerdown="startDragging"
-      >
-        <div class="flex items-center gap-3">
-          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-            <Sparkles class="h-5 w-5" />
-          </div>
-          <div class="min-w-0">
-            <h2 class="text-base font-bold text-slate-800">大模型问答助手</h2>
-            <p class="mt-1 truncate text-xs text-slate-500">{{ selectedModel || '模型连接中' }}</p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-          aria-label="关闭大模型问答助手"
-          @pointerdown.stop
-          @click="isOpen = false"
-        >
-          <X class="h-4 w-4" />
-        </button>
-      </div>
-
-      <div
-        ref="messagesContainer"
-        class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto bg-slate-50 px-4 py-4"
+      <section
+        v-if="isOpen"
+        data-qa-panel
+        :style="panelStyle"
+        :class="[
+          isDragging ? 'select-none shadow-2xl shadow-emerald-900/20' : 'shadow-2xl shadow-slate-900/20',
+          'fixed bottom-24 right-5 z-50 flex h-[min(620px,calc(100vh-120px))] w-[calc(100vw-40px)] max-w-[420px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white md:right-6',
+        ]"
+        @click.stop
+        @keydown.stop
+        @keyup.stop
+        @pointerdown.stop
+        @submit.prevent.stop
       >
         <div
-          v-for="(message, index) in messages"
-          :key="`${message.role}-${index}`"
-          :class="[
-            message.role === 'user' ? 'self-end bg-emerald-600 text-white' : 'self-start border border-slate-200 bg-white text-slate-700',
-            'max-w-[88%] rounded-2xl px-4 py-3 shadow-sm',
-          ]"
+          class="flex cursor-move touch-none items-start justify-between gap-3 border-b border-slate-100 px-4 py-4"
+          @pointerdown="startDragging"
         >
-          <div class="mb-2 flex items-center gap-2 text-xs font-bold">
-            <UserRound v-if="message.role === 'user'" class="h-4 w-4" />
-            <Bot v-else class="h-4 w-4 text-emerald-600" />
-            <span>{{ message.role === 'user' ? '我' : '智能助手' }}</span>
+          <div class="flex items-center gap-3">
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <Sparkles class="h-5 w-5" />
+            </div>
+            <div class="min-w-0">
+              <h2 class="text-base font-bold text-slate-800">大模型问答助手</h2>
+              <p class="mt-1 truncate text-xs text-slate-500">{{ selectedModel || '模型连接中' }}</p>
+            </div>
           </div>
-          <p class="whitespace-pre-wrap text-sm leading-7">{{ message.content }}</p>
-        </div>
 
-        <div v-if="isLoading" class="flex items-center gap-2 self-start rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-500 shadow-sm">
-          <LoaderCircle class="h-4 w-4 animate-spin text-emerald-600" />
-          正在生成回答...
-        </div>
-      </div>
-
-      <div class="border-t border-slate-100 bg-white p-3">
-        <textarea
-          v-model="inputValue"
-          class="max-h-28 min-h-20 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
-          placeholder="请输入问题，例如：儿茶素含量偏高代表什么？"
-          @keydown="handleKeydown"
-        />
-        <div class="mt-3 flex items-center justify-between gap-3">
-          <p class="text-xs text-slate-400">Enter 发送，Shift + Enter 换行</p>
           <button
             type="button"
-            :disabled="!canSend"
-            class="flex h-10 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-            @click="sendMessage"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            aria-label="关闭大模型问答助手"
+            @pointerdown.stop
+            @click.stop.prevent="isOpen = false"
           >
-            <LoaderCircle v-if="isLoading" class="h-4 w-4 animate-spin" />
-            <Send v-else class="h-4 w-4" />
-            发送
+            <X class="h-4 w-4" />
           </button>
         </div>
-      </div>
-    </section>
-  </transition>
 
-  <button
-    type="button"
-    class="group fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xl shadow-emerald-900/25 transition hover:-translate-y-0.5 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200 md:bottom-6 md:right-6"
-    :aria-label="isOpen ? '收起大模型问答助手' : '打开大模型问答助手'"
-    @click="toggleAssistant"
-  >
-    <LoaderCircle v-if="isLoading && !isOpen" class="h-6 w-6 animate-spin" />
-    <X v-else-if="isOpen" class="h-6 w-6 transition group-hover:scale-105" />
-    <MessageCircle v-else class="h-6 w-6 transition group-hover:scale-105" />
-  </button>
+        <div
+          ref="messagesContainer"
+          class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto bg-slate-50 px-4 py-4"
+        >
+          <div
+            v-for="(message, index) in messages"
+            :key="`${message.role}-${index}`"
+            :class="[
+              message.role === 'user' ? 'self-end bg-emerald-600 text-white' : 'self-start border border-slate-200 bg-white text-slate-700',
+              'max-w-[88%] rounded-2xl px-4 py-3 shadow-sm',
+            ]"
+          >
+            <div class="mb-2 flex items-center gap-2 text-xs font-bold">
+              <UserRound v-if="message.role === 'user'" class="h-4 w-4" />
+              <Bot v-else class="h-4 w-4 text-emerald-600" />
+              <span>{{ message.role === 'user' ? '我' : '智能助手' }}</span>
+            </div>
+            <p class="whitespace-pre-wrap text-sm leading-7">{{ message.content }}</p>
+          </div>
+
+          <div v-if="isLoading" class="flex items-center gap-2 self-start rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-500 shadow-sm">
+            <LoaderCircle class="h-4 w-4 animate-spin text-emerald-600" />
+            正在生成回答...
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 bg-white p-3">
+          <textarea
+            v-model="inputValue"
+            class="max-h-28 min-h-20 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
+            placeholder="请输入问题，例如：儿茶素含量偏高代表什么？"
+            @keydown="handleKeydown"
+          />
+          <div class="mt-3 flex items-center justify-between gap-3">
+            <p class="text-xs text-slate-400">Enter 发送，Shift + Enter 换行</p>
+            <button
+              type="button"
+              :disabled="!canSend"
+              class="flex h-10 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              @click.stop.prevent="sendMessage"
+            >
+              <LoaderCircle v-if="isLoading" class="h-4 w-4 animate-spin" />
+              <Send v-else class="h-4 w-4" />
+              发送
+            </button>
+          </div>
+        </div>
+      </section>
+    </transition>
+
+    <button
+      type="button"
+      class="group fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xl shadow-emerald-900/25 transition hover:-translate-y-0.5 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200 md:bottom-6 md:right-6"
+      :aria-label="isOpen ? '收起大模型问答助手' : '打开大模型问答助手'"
+      @click.stop.prevent="toggleAssistant"
+      @keydown.stop
+      @pointerdown.stop
+    >
+      <LoaderCircle v-if="isLoading && !isOpen" class="h-6 w-6 animate-spin" />
+      <X v-else-if="isOpen" class="h-6 w-6 transition group-hover:scale-105" />
+      <MessageCircle v-else class="h-6 w-6 transition group-hover:scale-105" />
+    </button>
+  </Teleport>
 </template>
