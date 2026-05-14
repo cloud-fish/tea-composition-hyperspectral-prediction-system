@@ -55,6 +55,11 @@ export default defineConfig(({mode}) => {
           target: 'http://127.0.0.1:8000',
           changeOrigin: true,
         },
+        '/llm-api': {
+          target: 'http://100.113.187.68:8001',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/llm-api/, '/v1'),
+        },
       },
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.

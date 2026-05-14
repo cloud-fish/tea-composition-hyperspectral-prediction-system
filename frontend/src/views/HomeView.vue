@@ -82,6 +82,5 @@ const moduleCards = [
           </div>
         </RouterLink>
       </section>
-
   </PlatformLayout>
 </template>
