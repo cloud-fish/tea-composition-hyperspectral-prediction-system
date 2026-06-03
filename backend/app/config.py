@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     SCALER_X_PATH: str = os.path.join(BASE_DIR, 'models', 'scaler_x.pkl')
     SCALER_Y_PATH: str = os.path.join(BASE_DIR, 'models', 'scaler_y.pkl')
     HYPERSPECTRAL_DATA_ROOT: str = os.path.join(BASE_DIR, "data")
+    PEST_DETECTION_MODEL_PATH: str = os.path.join(BASE_DIR, "models", "detection_best.pt")
+    PEST_DETECTION_UPLOAD_DIR: str = os.path.join(BASE_DIR, "data", "pest_uploads")
+    PEST_DETECTION_RESULT_DIR: str = os.path.join(BASE_DIR, "data", "pest_results")
     DEVICE_NAME: Optional[str] = "高光谱设备"
     DEVICE_ID: Optional[str] = None
     DEVICE_MOUNT_PATH: str = os.path.join(BASE_DIR, "mounted_device")
