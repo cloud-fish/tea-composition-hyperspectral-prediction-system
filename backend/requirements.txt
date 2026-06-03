@@ -12,3 +12,6 @@ python-multipart
 openpyxl
 seaborn
 pydantic-settings
+sahi
+opencv-python
+tqdm
