@@ -22,7 +22,6 @@ class Settings(BaseSettings):
     MODEL_PATH: str = os.path.join(BASE_DIR, 'models', 'transformer_4components.pth')
     SCALER_X_PATH: str = os.path.join(BASE_DIR, 'models', 'scaler_x.pkl')
     SCALER_Y_PATH: str = os.path.join(BASE_DIR, 'models', 'scaler_y.pkl')
-    TEMP_UPLOAD_DIR: str = os.path.join(BASE_DIR, "temp_uploads")
     HYPERSPECTRAL_DATA_ROOT: str = os.path.join(BASE_DIR, "data")
     DEVICE_NAME: Optional[str] = "高光谱设备"
     DEVICE_ID: Optional[str] = None
