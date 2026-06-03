@@ -68,6 +68,9 @@ backend/temp_uploads/
 backend/data/*
 data/*
 
+# Test / debug files
+frontend/src/views/test.vue
+
 # Project-local private notes / generated docs
 DEVELOPMENT_ROADMAP.md
 backend/高光谱设备目录监听接入服务设计方案.md
