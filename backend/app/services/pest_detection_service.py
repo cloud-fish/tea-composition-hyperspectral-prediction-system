@@ -26,7 +26,7 @@ class PestDetectionService:
         self.model = AutoDetectionModel.from_pretrained(
             model_type="yolo11",
             model_path=settings.PEST_DETECTION_MODEL_PATH,
-            confidence_threshold=0.25,
+            confidence_threshold=0.1,
             device=device,
         )
         self._model_loaded = True
@@ -43,7 +43,7 @@ class PestDetectionService:
             raise HTTPException(status_code=400, detail="仅支持 jpg、jpeg、png、bmp、webp 格式的图像")
 
         # 保存上传文件
-        task_id = uuid4().hex[:8]
+        task_id = uuid.uuid4().hex[:8]
         upload_dir = Path(settings.PEST_DETECTION_UPLOAD_DIR)
         result_dir = Path(settings.PEST_DETECTION_RESULT_DIR)
         upload_dir.mkdir(parents=True, exist_ok=True)
@@ -84,16 +84,15 @@ class PestDetectionService:
                     },
                 })
 
-            # 保存带标注的结果图
-            result_image_path = result_dir / f"{task_id}_result{ext}"
-            result.save_visual_export(str(result_image_path))
+            # 保存带标注的结果图（默认导出为 PNG）
+            result.export_visuals(export_dir=str(result_dir), file_name=f"{task_id}_result")
 
             return {
                 "task_id": task_id,
                 "filename": file.filename,
                 "detection_count": len(detections),
                 "detections": detections,
-                "result_image_url": f"/api/pest-detection/result/{task_id}_result{ext}",
+                "result_image_url": f"/api/pest-detection/result/{task_id}_result.png",
             }
 
         finally:
