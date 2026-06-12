@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onBeforeUnmount } from 'vue';
-import { Bug, Camera, ImageIcon } from 'lucide-vue-next';
+import { onBeforeUnmount, computed } from 'vue';
+import { Bug, Camera, ImageIcon, BarChart3, TrendingUp, Info } from 'lucide-vue-next';
 import FileUploader from '../components/FileUploader.vue';
 import PlatformLayout from '../components/PlatformLayout.vue';
 import { usePestDetection } from '../composables/usePestDetection';
-import { usePestTrend } from '../composables/usePestTrend';
+import { usePestTrendChart, PEST_TYPES } from '../composables/usePestTrendChart';
 
 const {
   uploadedFile,
@@ -20,21 +20,78 @@ const {
 
 const {
   trendData,
+  selectedRange,
   yAxisMax,
   chartWidth,
   chartHeight,
   padding,
   yAxisTicks,
-  pest1LinePath,
-  pest2LinePath,
+  linePaths,
   markers,
   xAxisLabels,
-  peak,
   getPoint,
-} = usePestTrend();
+} = usePestTrendChart();
 
 onBeforeUnmount(() => {
   resetDetection();
+});
+
+// Compute per-pest counts from detection results
+const pestCounts = computed(() => {
+  if (!detectionResult.value) return [];
+  const map = new Map<string, number>();
+  for (const det of detectionResult.value.detections) {
+    const name = det.class_name || `类别 ${det.class_id}`;
+    map.set(name, (map.get(name) || 0) + 1);
+  }
+  return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+});
+
+const totalCount = computed(() =>
+  pestCounts.value.reduce((sum, item) => sum + item.count, 0)
+);
+
+const pestPercentages = computed(() =>
+  pestCounts.value.map((item) => ({
+    ...item,
+    percentage: totalCount.value > 0 ? ((item.count / totalCount.value) * 100).toFixed(2) : '0.00',
+  }))
+);
+
+// Donut chart computation
+const donutColors = ['#22c55e', '#3b82f6', '#f59e0b', '#a855f7', '#ef4444'];
+const donutMidR = 66;
+const donutStrokeWidth = 28;
+const donutCircumference = 2 * Math.PI * donutMidR;
+
+const donutSegments = computed(() => {
+  const total = totalCount.value || 1;
+  let cumulativeOffset = 0;
+  return pestCounts.value.map((item, index) => {
+    const ratio = item.count / total;
+    const dashLength = ratio * donutCircumference;
+    const gapLength = donutCircumference - dashLength;
+    const offset = -cumulativeOffset;
+    cumulativeOffset += dashLength;
+    return {
+      dashArray: `${dashLength.toFixed(2)} ${gapLength.toFixed(2)}`,
+      offset: offset.toFixed(2),
+      color: donutColors[index % donutColors.length],
+    };
+  });
+});
+
+// Legend items for detection result
+const legendItems = computed(() => {
+  const items: Array<{ name: string; count: number; color: string }> = [];
+  for (let i = 0; i < pestCounts.value.length; i++) {
+    items.push({
+      name: pestCounts.value[i].name,
+      count: pestCounts.value[i].count,
+      color: donutColors[i % donutColors.length],
+    });
+  }
+  return items;
 });
 </script>
 
@@ -66,20 +123,16 @@ onBeforeUnmount(() => {
         @start-prediction="startDetection"
       />
 
-      <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="grid gap-5 lg:grid-cols-2">
-          <div class="flex min-h-[520px] flex-col rounded-2xl border border-emerald-100 bg-slate-50 p-4">
-            <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
-              <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                <ImageIcon class="h-5 w-5" />
-              </div>
-              <div>
-                <h2 class="text-lg font-bold text-slate-800">上传图像预览</h2>
-                <p class="mt-1 text-sm text-slate-500">展示当前载入的巡检图像或虫害样本图</p>
-              </div>
+      <!-- Right panel: 2x2 grid -->
+      <section class="flex flex-col gap-4">
+        <div class="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+          <!-- Top-left: Original image -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-3 flex items-center gap-2">
+              <ImageIcon class="h-4 w-4 text-emerald-600" />
+              <h2 class="text-base font-bold text-slate-800">原图展示</h2>
             </div>
-
-            <div class="mt-4 flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-dashed border-slate-200 bg-white">
+            <div class="flex h-[280px] overflow-hidden rounded-xl border border-dashed border-slate-200 bg-slate-50">
               <img
                 v-if="previewImageUrl"
                 :src="previewImageUrl"
@@ -88,155 +141,217 @@ onBeforeUnmount(() => {
               />
               <div
                 v-else
-                class="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center text-slate-400"
+                class="flex flex-1 flex-col items-center justify-center gap-2 text-slate-400"
               >
-                <ImageIcon class="h-12 w-12 opacity-20" />
-                <div>
-                  <p class="text-base font-semibold text-slate-500">暂无图像预览</p>
-                  <p class="mt-2 text-sm leading-6">请在左侧上传虫害图像或选择图片文件夹</p>
-                </div>
+                <ImageIcon class="h-10 w-10 opacity-20" />
+                <p class="text-sm font-semibold text-slate-500">暂无图像预览</p>
+                <p class="text-xs leading-5 text-slate-400">请在左侧上传虫害图像</p>
               </div>
             </div>
           </div>
 
-          <div class="flex min-h-[520px] flex-col rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
-              <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                <Bug class="h-5 w-5" />
-              </div>
-              <div>
-                <h2 class="text-lg font-bold text-slate-800">检测结果</h2>
-                <p class="mt-1 text-sm text-slate-500">
-                  {{ detectionResult ? `共发现 ${detectionResult.detection_count} 个目标` : '等待检测分析' }}
-                </p>
+          <!-- Top-right: Detection result -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-3 flex items-center gap-2">
+              <Bug class="h-4 w-4 text-emerald-600" />
+              <h2 class="text-base font-bold text-slate-800">检测效果</h2>
+              <span v-if="pestCounts.length > 0" class="ml-1 text-sm font-normal text-emerald-600">
+                （识别结果：<strong>{{ pestCounts.length }}种虫害</strong>）
+              </span>
+            </div>
+            <div class="flex h-[280px] overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              <img
+                v-if="resultImageUrl"
+                :src="resultImageUrl"
+                alt="检测结果标注图"
+                class="h-full w-full object-contain"
+              />
+              <div
+                v-else
+                class="flex flex-1 flex-col items-center justify-center gap-2 text-slate-400"
+              >
+                <Bug class="h-10 w-10 opacity-20" />
+                <p class="text-sm font-semibold text-slate-500">暂无检测结果</p>
+                <p class="text-xs leading-5 text-slate-400">请上传图像并点击"开始识别分析"</p>
               </div>
             </div>
-
-            <div class="mt-4 flex flex-1 flex-col rounded-2xl border border-slate-200 bg-white p-4">
-              <div v-if="detectionResult" class="grid gap-3 sm:grid-cols-3">
-                <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                  <div class="text-xs font-semibold text-slate-400">检测任务 ID</div>
-                  <div class="mt-1 truncate text-sm font-bold text-slate-800">{{ detectionResult.task_id }}</div>
-                </div>
-                <div class="rounded-2xl bg-emerald-50 px-4 py-3">
-                  <div class="text-xs font-semibold text-emerald-500">目标数量</div>
-                  <div class="mt-1 text-lg font-bold text-emerald-700">{{ detectionResult.detection_count }} 个</div>
-                </div>
-                <div class="rounded-2xl bg-cyan-50 px-4 py-3">
-                  <div class="text-xs font-semibold text-cyan-500">原始文件</div>
-                  <div class="mt-1 truncate text-sm font-bold text-cyan-700">{{ detectionResult.filename }}</div>
-                </div>
+            <!-- Legend -->
+            <div v-if="legendItems.length > 0" class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600">
+              <div v-for="item in legendItems" :key="item.name" class="flex items-center gap-1.5">
+                <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: item.color }"></span>
+                <span>{{ item.name }}</span>
+                <span class="font-bold text-slate-800">{{ item.count }}</span>
               </div>
+              <div class="ml-auto font-bold text-slate-800">总数：{{ totalCount }}</div>
+            </div>
+          </div>
+        </div>
 
-              <div v-if="detectionResult && detectionResult.detections.length > 0" class="mt-4 max-h-[240px] overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
-                <div v-for="(det, index) in detectionResult.detections" :key="index" class="mb-2 flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm last:mb-0">
-                  <div class="flex items-center gap-2">
-                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                    <span class="font-semibold text-slate-700">{{ det.class_name || `类别 ${det.class_id}` }}</span>
-                  </div>
-                  <span class="font-mono text-xs text-slate-500">{{ (det.confidence * 100).toFixed(1) }}%</span>
-                </div>
-              </div>
-
-              <div v-else-if="!detectionResult" class="mt-4 flex flex-1 items-center justify-center text-center text-slate-400">
-                <div>
-                  <Bug class="mx-auto h-12 w-12 opacity-20" />
-                  <p class="mt-3 text-base font-semibold text-slate-500">暂无检测结果</p>
-                  <p class="mt-2 text-sm leading-6">请上传虫害图像并点击"开始识别分析"</p>
-                </div>
-              </div>
-
-              <div v-if="resultImageUrl" class="mt-4 min-h-[200px] overflow-hidden rounded-2xl border border-slate-100 bg-slate-50/70">
-                <img :src="resultImageUrl" alt="检测结果标注图" class="h-full w-full object-contain" />
-              </div>
-
-              <div class="mt-4 flex-1">
-                <div class="flex items-center gap-5 text-sm font-semibold text-slate-600">
-                  <div class="flex items-center gap-2">
-                    <span class="h-3 w-3 rounded-full bg-emerald-500"></span>
-                    <span>害虫1（只/板）</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="h-3 w-3 rounded-full bg-sky-500"></span>
-                    <span>害虫2（只/板）</span>
-                  </div>
-                </div>
-
-                <div class="mt-3 min-h-[320px] flex-1 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50/70 px-3 py-4">
-                  <svg
-                    class="h-full min-h-[300px] w-full"
-                    :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
-                    preserveAspectRatio="none"
+        <div class="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+          <!-- Bottom-left: Pest statistics overview -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-3 flex items-center gap-2">
+              <BarChart3 class="h-4 w-4 text-emerald-600" />
+              <h2 class="text-base font-bold text-slate-800">虫害统计概览</h2>
+            </div>
+            <div v-if="pestCounts.length > 0" class="flex items-center gap-4">
+              <!-- Donut chart -->
+              <div class="relative flex-shrink-0">
+                <svg viewBox="0 0 200 200" class="h-[160px] w-[160px]" style="transform: rotate(-90deg)">
+                  <circle
+                    v-for="(seg, idx) in donutSegments"
+                    :key="idx"
+                    cx="100"
+                    cy="100"
+                    :r="donutMidR"
                     fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <defs>
-                      <linearGradient id="pestTrendArea" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.22" />
-                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.02" />
-                      </linearGradient>
-                    </defs>
-
-                    <g stroke="#e2e8f0" stroke-dasharray="4 6">
-                      <line
-                        v-for="tick in yAxisTicks"
-                        :key="`y-${tick}`"
-                        :x1="padding.left"
-                        :x2="chartWidth - padding.right"
-                        :y1="padding.top + (1 - tick / (yAxisMax || 1)) * (chartHeight - padding.top - padding.bottom)"
-                        :y2="padding.top + (1 - tick / (yAxisMax || 1)) * (chartHeight - padding.top - padding.bottom)"
-                      />
-                    </g>
-
-                    <g fill="#64748b" font-size="12" font-weight="700">
-                      <text
-                        v-for="tick in yAxisTicks"
-                        :key="`label-y-${tick}`"
-                        :x="padding.left - 10"
-                        :y="padding.top + (1 - tick / (yAxisMax || 1)) * (chartHeight - padding.top - padding.bottom) + 4"
-                        text-anchor="end"
-                      >
-                        {{ tick }}
-                      </text>
-                    </g>
-
-                    <g fill="#64748b" font-size="12" font-weight="700">
-                      <text
-                        v-for="label in xAxisLabels"
-                        :key="label.date"
-                        :x="getPoint(label.pest1, trendData.findIndex((item) => item.date === label.date)).x"
-                        :y="chartHeight - 12"
-                        text-anchor="middle"
-                      >
-                        {{ label.date }}
-                      </text>
-                    </g>
-
-                    <path
-                      :d="`${pest1LinePath} L ${chartWidth - padding.right} ${chartHeight - padding.bottom} L ${padding.left} ${chartHeight - padding.bottom} Z`"
-                      fill="url(#pestTrendArea)"
-                    />
-                    <path :d="pest2LinePath" stroke="#0ea5e9" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" stroke-dasharray="8 8" />
-                    <path :d="pest1LinePath" stroke="#10b981" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" />
-
-                    <circle
-                      v-for="marker in markers"
-                      :key="`pest1-${marker.date}`"
-                      :cx="marker.pest1Point.x"
-                      :cy="marker.pest1Point.y"
-                      r="3.6"
-                      fill="#ffffff"
-                      stroke="#10b981"
-                      stroke-width="2.5"
-                    />
-
-                    <text x="14" y="18" fill="#64748b" font-size="13" font-weight="700">数量（只/板）</text>
-                    <text :x="chartWidth - 12" :y="chartHeight - 12" text-anchor="end" fill="#64748b" font-size="13" font-weight="700">日期</text>
-                  </svg>
+                    :stroke="seg.color"
+                    :stroke-width="donutStrokeWidth"
+                    :stroke-dasharray="seg.dashArray"
+                    :stroke-dashoffset="seg.offset"
+                  />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-xs text-slate-400">总数</span>
+                  <span class="text-2xl font-bold text-slate-800">{{ totalCount }}</span>
+                </div>
+              </div>
+              <!-- Table -->
+              <div class="min-w-0 flex-1">
+                <div class="mb-2 grid grid-cols-3 gap-2 text-xs font-semibold text-slate-400">
+                  <span>虫害种类</span>
+                  <span class="text-center">数量（个）</span>
+                  <span class="text-right">占比</span>
+                </div>
+                <div
+                  v-for="(item, idx) in pestPercentages"
+                  :key="item.name"
+                  class="grid grid-cols-3 gap-2 border-t border-slate-50 py-1.5 text-xs"
+                >
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span class="h-2.5 w-2.5 flex-shrink-0 rounded-full" :style="{ backgroundColor: donutColors[idx % donutColors.length] }"></span>
+                    <span class="truncate font-medium text-slate-700">{{ item.name }}</span>
+                  </div>
+                  <span class="text-center font-bold text-slate-800">{{ item.count }}</span>
+                  <span class="text-right text-slate-500">{{ item.percentage }}%</span>
                 </div>
               </div>
             </div>
+            <div v-else class="flex h-[160px] items-center justify-center text-slate-400">
+              <div class="text-center">
+                <BarChart3 class="mx-auto h-10 w-10 opacity-20" />
+                <p class="mt-2 text-sm font-semibold text-slate-500">暂无统计数据</p>
+                <p class="text-xs leading-5 text-slate-400">完成检测后将自动展示统计概览</p>
+              </div>
+            </div>
           </div>
+
+          <!-- Bottom-right: Pest occurrence trend -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-3 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <TrendingUp class="h-4 w-4 text-emerald-600" />
+                <h2 class="text-base font-bold text-slate-800">虫害发生趋势</h2>
+              </div>
+              <select
+                v-model="selectedRange"
+                class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 outline-none focus:border-emerald-400"
+              >
+                <option>近7天</option>
+                <option>近14天</option>
+                <option>近30天</option>
+              </select>
+            </div>
+            <!-- Legend -->
+            <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+              <div v-for="pest in PEST_TYPES" :key="pest.key" class="flex items-center gap-1">
+                <span class="h-0.5 w-4" :style="{ backgroundColor: pest.color }"></span>
+                <span>{{ pest.label }}</span>
+              </div>
+            </div>
+            <!-- Chart -->
+            <div class="min-h-[220px] overflow-hidden rounded-xl border border-slate-100 bg-slate-50/70 px-2 py-2">
+              <svg
+                class="h-full min-h-[200px] w-full"
+                :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
+                preserveAspectRatio="none"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <!-- Grid lines -->
+                <g stroke="#e2e8f0" stroke-dasharray="4 6">
+                  <line
+                    v-for="tick in yAxisTicks"
+                    :key="`y-${tick}`"
+                    :x1="padding.left"
+                    :x2="chartWidth - padding.right"
+                    :y1="padding.top + (1 - tick / (yAxisMax || 1)) * (chartHeight - padding.top - padding.bottom)"
+                    :y2="padding.top + (1 - tick / (yAxisMax || 1)) * (chartHeight - padding.top - padding.bottom)"
+                  />
+                </g>
+
+                <!-- Y axis labels -->
+                <g fill="#64748b" font-size="11" font-weight="600">
+                  <text
+                    v-for="tick in yAxisTicks"
+                    :key="`label-y-${tick}`"
+                    :x="padding.left - 8"
+                    :y="padding.top + (1 - tick / (yAxisMax || 1)) * (chartHeight - padding.top - padding.bottom) + 4"
+                    text-anchor="end"
+                  >
+                    {{ tick }}
+                  </text>
+                </g>
+
+                <!-- X axis labels -->
+                <g fill="#64748b" font-size="11" font-weight="600">
+                  <text
+                    v-for="(label, idx) in xAxisLabels"
+                    :key="label"
+                    :x="padding.left + (idx / Math.max(xAxisLabels.length - 1, 1)) * (chartWidth - padding.left - padding.right)"
+                    :y="chartHeight - 10"
+                    text-anchor="middle"
+                  >
+                    {{ label }}
+                  </text>
+                </g>
+
+                <!-- Lines for each pest type -->
+                <path
+                  v-for="pest in PEST_TYPES"
+                  :key="pest.key"
+                  :d="linePaths[pest.key] || ''"
+                  :stroke="pest.color"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2.5"
+                />
+
+                <!-- Markers -->
+                <template v-for="pest in PEST_TYPES" :key="`markers-${pest.key}`">
+                  <circle
+                    v-for="(pt, idx) in markers[pest.key] || []"
+                    :key="`${pest.key}-${idx}`"
+                    :cx="pt.x"
+                    :cy="pt.y"
+                    r="3"
+                    fill="white"
+                    :stroke="pest.color"
+                    stroke-width="2"
+                  />
+                </template>
+
+                <!-- Axis titles -->
+                <text x="14" y="16" fill="#64748b" font-size="12" font-weight="600">数量（个）</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer tip -->
+        <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-500 shadow-sm">
+          <Info class="h-3.5 w-3.5 flex-shrink-0 text-slate-400" />
+          <span>提示：检测结果仅供参考，请结合人工判断进行综合决策</span>
         </div>
       </section>
     </section>
