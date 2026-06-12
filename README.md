@@ -1,90 +1,91 @@
-# 茶叶成分高光谱预测系统 (Tea Composition Hyperspectral Prediction System)
+# 茶园智能感知与诊断平台 (Tea Garden Intelligent Perception and Diagnosis Platform)
 
-这是一个基于深度学习高光谱分析技术的茶叶化学成分预测系统。系统利用 Transformer 架构的模型（SpecTeaFormer），通过分析茶叶的高光谱数据（.dat 格式），能够快速且准确地预测茶叶中的四种核心化学成分含量。
+基于深度学习与高光谱分析技术的茶园智能感知与诊断平台，集成茶叶化学成分预测和虫害识别两大核心模块。
 
-## 🌟 核心特性
+## 核心特性
 
-- **高精度预测**：采用基于 Transformer 的多输出回归模型，精准捕捉光谱特征与化学成分之间的非线性关系。
+### 茶叶高光谱成分分析
+- **高精度预测**：基于 Transformer 架构（SpecTeaFormer），精准捕捉光谱特征与化学成分之间的非线性关系
 - **四组分同步分析**：一次上传即可同时获取以下四种成分的含量（%）：
-  - **儿茶素 (Catechins)**：抗氧化能力的关键指标。
-  - **咖啡因 (Caffeine)**：茶叶提神效果的主要来源。
-  - **茶氨酸 (Theanine)**：赋予茶叶鲜爽味及放松功效。
-  - **茶碱 (Theophylline)**：重要的生物碱成分。
-- **现代化交互界面**：基于 Vue 3 和 Element Plus 构建的响应式 Web 界面，采用组件化设计，支持文件拖拽上传和结果可视化。
-- **智能语义评价**：根据预测数值自动给出“高/中/低”的语义化等级评价。
-- **模块化架构**：系统后端采用分层架构（路由、服务、核心、模式），前端采用组合式 API (Composables) 和视图-组件分离的模式，具有极高的可维护性和扩展性。
+  - **儿茶素 (Catechins)**：抗氧化能力的关键指标
+  - **咖啡因 (Caffeine)**：茶叶提神效果的主要来源
+  - **茶氨酸 (Theanine)**：赋予茶叶鲜爽味及放松功效
+  - **茶碱 (Theophylline)**：重要的生物碱成分
+- **高光谱可视化**：支持样本预览图与像素点光谱曲线联动查看
 
-## 🛠️ 技术栈
+### 虫害识别
+- **图像上传与识别**：支持茶园巡检照片、虫害样本图和现场图像统一接入
+- **检测结果展示**：标注图像展示、虫害种类统计与占比分析
+- **虫害趋势分析**：多虫害类型（茶小绿叶蝉、蚜虫、茶尺蠖、介壳虫、茶毛虫）发生趋势可视化
+- **可扩展架构**：便于后续扩展虫害识别、风险研判和诊断建议等业务能力
 
-### 后端 (Backend)
-- **框架**: [FastAPI](https://fastapi.tiangolo.com/) - 高性能的 Python Web API 框架。
-- **架构**: 模块化分层架构 (Routers, Services, Schemas, Core)。
-- **深度学习**: [PyTorch](https://pytorch.org/) - 用于构建和运行 Transformer 预测模型。
-- **数据处理**: Scikit-learn (数据标准化), Joblib (模型序列化), NumPy, Pandas。
+## 技术栈
 
-### 前端 (Frontend)
-- **框架**: [Vue 3](https://vuejs.org/) (Composition API)
+### 后端
+- **框架**: [FastAPI](https://fastapi.tiangolo.com/)
+- **深度学习**: [PyTorch](https://pytorch.org/)
+- **数据处理**: Scikit-learn, NumPy, Pandas
+- **目标检测**: YOLO (虫害识别)
+
+### 前端
+- **框架**: [Vue 3](https://vuejs.org/) (Composition API + TypeScript)
 - **构建工具**: [Vite](https://vitejs.dev/)
-- **路由**: [Vue Router](https://router.vuejs.org/)
 - **UI 组件库**: [Element Plus](https://element-plus.org/)
 - **样式**: [Tailwind CSS](https://tailwindcss.com/)
 - **图标**: [Lucide Vue Next](https://lucide.dev/)
 - **PWA**: [Vite PWA](https://vite-pwa-org.netlify.app/)
 
-## 📂 项目结构
+## 快速开始
+
+### 环境准备
+- Python 3.9+
+- Node.js 18+
+- pnpm 8+
+
+### 启动后端
+```bash
+cd backend
+pip install -r requirements.txt
+python api.py
+```
+服务默认运行在 `http://127.0.0.1:8000`
+
+### 启动前端
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+前端默认运行在 `http://localhost:3000`
+
+## 项目结构
 
 ```text
 tea-composition-hyperspectral-prediction-system/
 ├── backend/                # 后端代码
-│   ├── app/                # 主应用目录
-│   │   ├── core/           # 核心配置和生命周期管理
+│   ├── app/
+│   │   ├── core/           # 核心配置
 │   │   ├── routers/        # API 路由
-│   │   ├── schemas/        # Pydantic 数据模型
-│   │   ├── services/       # 业务逻辑服务层
-│   │   └── main.py         # FastAPI 应用实例
-│   ├── models/             # 预训练模型权重 (.pth) 及标准化器 (.pkl)
-│   ├── utils/              # 光谱读取、模型定义等工具类
-│   ├── api.py              # uvicorn 启动入口
-│   └── requirements.txt    # 后端依赖
+│   │   ├── schemas/        # 数据模型
+│   │   ├── services/       # 业务逻辑
+│   │   └── main.py         # FastAPI 应用
+│   ├── models/             # 预训练模型
+│   ├── utils/              # 工具类
+│   └── requirements.txt
 ├── frontend/               # 前端代码
-│   ├── src/                # Vue 源代码
-│   │   ├── components/     # 可复用组件 (如 StatusBar, ResultCard)
-│   │   ├── composables/    # 组合式函数 (如 usePrediction)
-│   │   ├── router/         # 前端路由配置
-│   │   └── views/          # 页面级视图 (如 Home)
-│   ├── package.json        # 前端依赖及脚本
-│   └── vite.config.ts      # Vite 配置
-└── README.md               # 项目说明文档
+│   ├── src/
+│   │   ├── components/     # 通用组件
+│   │   ├── composables/    # 组合式函数
+│   │   ├── router/         # 路由配置
+│   │   └── views/          # 页面视图
+│   └── package.json
+└── README.md
 ```
 
-## 🚀 快速开始
+## 页面路由
 
-### 1. 环境准备
-确保您的系统中已安装 Python 3.9+ 和 Node.js 16+。
-
-### 2. 后端部署
-```bash
-cd backend
-# 安装依赖
-pip install -r requirements.txt
-# 启动服务 (默认运行在 http://127.0.0.1:8000)
-python api.py
-```
-
-### 3. 前端部署
-```bash
-cd frontend
-# 安装依赖
-pnpm install  # 或 npm install
-# 启动开发服务器 (默认运行在 http://localhost:3000)
-pnpm dev      # 或 npm run dev
-```
-
-## 📝 使用指南
-
-1. 启动后端和前端服务。
-2. 在浏览器中访问 `http://localhost:3000`。
-3. 将采集到的茶叶高光谱 `.dat` 文件拖拽至上传区域。
-4. 点击“开始智能预测”按钮。
-5. 系统将自动调用后端 Transformer 模型进行推理，并在界面上实时展示四种成分的预测值及其分布情况。
-
+| 路径 | 说明 |
+|------|------|
+| `/` | 平台首页 |
+| `/tea-hyperspectral-prediction` | 茶叶高光谱成分分析 |
+| `/pest-detection` | 虫害识别 |
